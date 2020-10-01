@@ -76,8 +76,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, DeviceOrientationCo
         OrientationLock.deviceOrientationController = self
 
         NotificationManager.authorize(delegate: self)
-
-
+        
         rootViewController.pushViewController(statusTableViewController, animated: false)
 
         let notificationOption = launchOptions?[.remoteNotification]

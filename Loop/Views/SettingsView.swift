@@ -102,6 +102,7 @@ extension SettingsView {
                     TherapySettingsView(
                         viewModel: TherapySettingsViewModel(mode: .settings,
                                                             therapySettings: self.viewModel.therapySettings,
+                                                            glucoseUnit: self.viewModel.therapySettings.glucoseUnit!,
                                                             supportedInsulinModelSettings: self.viewModel.supportedInsulinModelSettings,
                                                             pumpSupportedIncrements: self.viewModel.pumpSupportedIncrements,
                                                             syncPumpSchedule: self.viewModel.syncPumpSchedule,

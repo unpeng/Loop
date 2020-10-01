@@ -117,6 +117,8 @@ final class StatusTableViewController: LoopChartsTableViewController {
         addScenarioStepGestureRecognizers()
 
         self.tableView.backgroundColor = .secondarySystemBackground
+        
+        navigateToOnboardingIfNecessary()
     }
 
     override func didReceiveMemoryWarning() {
@@ -125,6 +127,14 @@ final class StatusTableViewController: LoopChartsTableViewController {
         if !visible {
             refreshContext.formUnion(RefreshContext.all)
         }
+    }
+    
+    private func navigateToOnboardingIfNecessary() {
+        let therapySettings = deviceManager.loopManager.therapySettings
+        
+//        if !therapySettings.isComplete, let firstService = deviceManager.pluginManager.availableServices.first {
+//            setupService(withIdentifier: firstService.identifier)
+//        }
     }
 
     private var appearedOnce = false
@@ -1855,8 +1865,20 @@ extension StatusTableViewController: ServicesViewModelDelegate {
         guard let serviceUIType = deviceManager.servicesManager.serviceUITypeByIdentifier(identifier) else {
             return
         }
-
-        if var setupViewController = serviceUIType.setupViewController() {
+        
+        guard let preferredGlucoseUnit = deviceManager.glucoseStore.preferredUnit else {
+            return
+        }
+        
+        if var setupViewController = serviceUIType.setupViewController(
+            currentTherapySettings: deviceManager.loopManager.therapySettings,
+            preferredGlucoseUnit: preferredGlucoseUnit,
+            chartColors: .primary,
+            carbTintColor: .carbTintColor,
+            glucoseTintColor: .glucoseTintColor,
+            guidanceColors: .default,
+            insulinTintColor: .insulinTintColor)
+        {
             setupViewController.serviceSetupDelegate = self
             setupViewController.completionDelegate = self
             show(setupViewController, sender: self)
