@@ -35,7 +35,8 @@ final class StatusTableViewController: LoopChartsTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        statusCharts.glucose.glucoseDisplayRange = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 100)...HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 175)
+        let glucoseMGDLDisplayBound: (lower: Double, upper: Double) = FeatureFlags.predictedGlucoseChartClampEnabled ? (80, 240) : (100, 175)
+        statusCharts.glucose.glucoseDisplayRange = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: glucoseMGDLDisplayBound.lower)...HKQuantity(unit: .milligramsPerDeciliter, doubleValue: glucoseMGDLDisplayBound.upper)
 
         registerPumpManager()
 
@@ -166,6 +167,8 @@ final class StatusTableViewController: LoopChartsTableViewController {
         onscreen = true
 
         deviceManager.analyticsServicesManager.didDisplayStatusScreen()
+        
+        deviceManager.checkDeliveryUncertaintyState()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -523,9 +526,9 @@ final class StatusTableViewController: LoopChartsTableViewController {
                                                             at: glucose.startDate,
                                                             unit: unit,
                                                             staleGlucoseAge: self.deviceManager.loopManager.settings.inputDataRecencyInterval,
-                                                            sensor: self.deviceManager.sensorState)
+                                                            glucoseDisplay: self.deviceManager.glucoseDisplay(for: glucose),
+                                                            wasUserEntered: glucose.wasUserEntered)
                 }
-
                 hudView.cgmStatusHUD.presentStatusHighlight(self.deviceManager.cgmStatusHighlight)
                 hudView.cgmStatusHUD.lifecycleProgress = self.deviceManager.cgmLifecycleProgress
 
@@ -1152,7 +1155,7 @@ final class StatusTableViewController: LoopChartsTableViewController {
     @IBAction func unwindFromSettings(_ segue: UIStoryboardSegue) {}
 
     @IBAction func presentBolusScreen() {
-        let viewModel = BolusEntryViewModel(dataManager: deviceManager)
+        let viewModel = BolusEntryViewModel(delegate: deviceManager)
         let bolusEntryView = BolusEntryView(viewModel: viewModel)
         let hostingController = DismissibleHostingController(rootView: bolusEntryView, isModalInPresentation: false)
         let navigationWrapper = UINavigationController(rootViewController: hostingController)
@@ -1260,10 +1263,15 @@ final class StatusTableViewController: LoopChartsTableViewController {
             didTapAddDevice: { [weak self] in
                 self?.setupCGMManager($0.identifier)
         })
-        let pumpSupportedIncrements = deviceManager.pumpManager.map {
-            PumpSupportedIncrements(basalRates: $0.supportedBasalRates,
-                                    bolusVolumes: $0.supportedBolusVolumes,
-                                    maximumBasalScheduleEntryCount: $0.maximumBasalScheduleEntryCount)
+        let pumpSupportedIncrements = { [weak self] in
+            self?.deviceManager.pumpManager.map {
+                PumpSupportedIncrements(basalRates: $0.supportedBasalRates,
+                                        bolusVolumes: $0.supportedBolusVolumes,
+                                        maximumBasalScheduleEntryCount: $0.maximumBasalScheduleEntryCount)
+            }
+        }
+        let syncBasalRateSchedule = { [weak self] in
+            self?.deviceManager.pumpManager?.syncBasalRateSchedule
         }
         let servicesViewModel = ServicesViewModel(showServices: FeatureFlags.includeServicesInSettingsEnabled,
                                                   availableServices: { [weak self] in self?.deviceManager.servicesManager.availableServices ?? [] },
@@ -1274,10 +1282,11 @@ final class StatusTableViewController: LoopChartsTableViewController {
                                           pumpManagerSettingsViewModel: pumpViewModel,
                                           cgmManagerSettingsViewModel: cgmViewModel,
                                           servicesViewModel: servicesViewModel,
+                                          criticalEventLogExportViewModel: CriticalEventLogExportViewModel(exporterFactory: deviceManager.criticalEventLogExportManager),
                                           therapySettings: deviceManager.loopManager.therapySettings,
                                           supportedInsulinModelSettings: SupportedInsulinModelSettings(fiaspModelEnabled: FeatureFlags.fiaspInsulinModelEnabled, walshModelEnabled: FeatureFlags.walshInsulinModelEnabled),
                                           pumpSupportedIncrements: pumpSupportedIncrements,
-                                          syncPumpSchedule: deviceManager.pumpManager?.syncBasalRateSchedule,
+                                          syncPumpSchedule: syncBasalRateSchedule,
                                           sensitivityOverridesEnabled: FeatureFlags.sensitivityOverridesEnabled,
                                           initialDosingEnabled: deviceManager.loopManager.settings.dosingEnabled,
                                           delegate: self
@@ -1478,6 +1487,11 @@ final class StatusTableViewController: LoopChartsTableViewController {
                 self.presentSimulatedCoreDataMenu()
             })
         }
+        actionSheet.addAction(UIAlertAction(title: "Remove Exports Directory", style: .default) { _ in
+            if let error = self.deviceManager.removeExportsDirectory() {
+                self.presentError(error)
+            }
+        })
         if FeatureFlags.mockTherapySettingsEnabled {
             actionSheet.addAction(UIAlertAction(title: "Mock Therapy Settings", style: .default) { _ in
                 let settings = TherapySettings.mockTherapySettings

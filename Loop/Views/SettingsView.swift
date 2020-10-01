@@ -94,7 +94,7 @@ extension SettingsView {
     private var therapySettingsSection: some View {
         Section(header: SectionHeader(label: NSLocalizedString("Configuration", comment: "The title of the Configuration section in settings"))) {
             LargeButton(action: { self.therapySettingsIsPresented = true },
-                            includeArrow: false,
+                            includeArrow: true,
                             imageView: AnyView(Image("Therapy Icon")),
                             label: NSLocalizedString("Therapy Settings", comment: "Title text for button to Therapy Settings"),
                             descriptiveText: NSLocalizedString("Diabetes Treatment", comment: "Descriptive text for Therapy Settings"))
@@ -129,7 +129,7 @@ extension SettingsView {
     private var pumpSection: some View {
         if viewModel.pumpManagerSettingsViewModel.isSetUp() {
             LargeButton(action: self.viewModel.pumpManagerSettingsViewModel.didTap,
-                        includeArrow: false,
+                        includeArrow: true,
                         imageView: deviceImage(uiImage: viewModel.pumpManagerSettingsViewModel.image()),
                         label: viewModel.pumpManagerSettingsViewModel.name(),
                         descriptiveText: NSLocalizedString("Insulin Pump", comment: "Descriptive text for Insulin Pump"))
@@ -159,7 +159,7 @@ extension SettingsView {
     private var cgmSection: some View {
         if viewModel.cgmManagerSettingsViewModel.isSetUp() {
             LargeButton(action: self.viewModel.cgmManagerSettingsViewModel.didTap,
-                        includeArrow: false,
+                        includeArrow: true,
                         imageView: deviceImage(uiImage: viewModel.cgmManagerSettingsViewModel.image()),
                         label: viewModel.cgmManagerSettingsViewModel.name(),
                         descriptiveText: NSLocalizedString("Continuous Glucose Monitor", comment: "Descriptive text for Continuous Glucose Monitor"))
@@ -189,7 +189,7 @@ extension SettingsView {
         Section(header: SectionHeader(label: NSLocalizedString("Accounts", comment: "The title of the accounts section in settings"))) {
             ForEach(viewModel.servicesViewModel.activeServices().indices, id: \.self) { index in
                 LargeButton(action: { self.viewModel.servicesViewModel.didTapService(index) },
-                            includeArrow: false,
+                            includeArrow: true,
                             imageView: self.serviceImage(uiImage: (self.viewModel.servicesViewModel.activeServices()[index] as! ServiceUI).image),
                             label: self.viewModel.servicesViewModel.activeServices()[index].localizedTitle,
                             descriptiveText: "")
@@ -255,7 +255,9 @@ extension SettingsView {
     
     private var supportSection: some View {
         Section(header: SectionHeader(label: NSLocalizedString("Support", comment: "The title of the support section in settings"))) {
-            NavigationLink(destination: SupportScreenView(didTapIssueReport: viewModel.didTapIssueReport)) {
+            NavigationLink(destination: SupportScreenView(didTapIssueReport: viewModel.didTapIssueReport,
+                                                          criticalEventLogExportViewModel: viewModel.criticalEventLogExportViewModel))
+            {
                 Text(NSLocalizedString("Support", comment: "The title of the support item in settings"))
             }
         }
@@ -349,6 +351,7 @@ public struct SettingsView_Previews: PreviewProvider {
                                           pumpManagerSettingsViewModel: DeviceViewModel(),
                                           cgmManagerSettingsViewModel: DeviceViewModel(),
                                           servicesViewModel: servicesViewModel,
+                                          criticalEventLogExportViewModel: CriticalEventLogExportViewModel(exporterFactory: MockCriticalEventLogExporterFactory()),
                                           therapySettings: TherapySettings(),
                                           supportedInsulinModelSettings: SupportedInsulinModelSettings(fiaspModelEnabled: true, walshModelEnabled: true),
                                           pumpSupportedIncrements: nil,
