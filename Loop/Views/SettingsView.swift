@@ -39,7 +39,9 @@ public struct SettingsView: View, HorizontalSizeClassOverride {
                 if viewModel.showWarning {
                     alertPermissionsSection
                 }
-                therapySettingsSection
+                if viewModel.pumpManagerSettingsViewModel.isSetUp() {
+                    therapySettingsSection
+                }
                 deviceSettingsSection
                 if viewModel.pumpManagerSettingsViewModel.isTestingDevice || viewModel.cgmManagerSettingsViewModel.isTestingDevice {
                     deleteDataSection
@@ -71,6 +73,7 @@ extension SettingsView {
             Toggle(isOn: $viewModel.dosingEnabled) {
                 Text(NSLocalizedString("Closed Loop", comment: "The title text for the looping enabled switch cell"))
             }
+            .disabled(!viewModel.pumpManagerSettingsViewModel.isSetUp() || !viewModel.cgmManagerSettingsViewModel.isSetUp())
         }
     }
     

@@ -133,9 +133,9 @@ final class StatusTableViewController: LoopChartsTableViewController {
     private func navigateToOnboardingIfNecessary() {
         let therapySettings = deviceManager.loopManager.therapySettings
         
-//        if !therapySettings.isComplete, let firstService = deviceManager.pluginManager.availableServices.first {
-//            setupService(withIdentifier: firstService.identifier)
-//        }
+        if !therapySettings.isComplete, let firstService = deviceManager.pluginManager.availableServices.first {
+            setupService(withIdentifier: firstService.identifier)
+        }
     }
 
     private var appearedOnce = false
@@ -1869,10 +1869,12 @@ extension StatusTableViewController: ServicesViewModelDelegate {
     }
 
     fileprivate func didTapService(_ serviceUI: ServiceUI) {
-        var settings = serviceUI.settingsViewController(chartColors: .primary, carbTintColor: .carbTintColor, glucoseTintColor: .glucoseTintColor, guidanceColors: .default, insulinTintColor: .insulinTintColor)
-        settings.serviceSettingsDelegate = self
-        settings.completionDelegate = self
-        show(settings, sender: self)
+        if let glucoseUnit = deviceManager.preferredGlucoseUnit {
+            var settings = serviceUI.settingsViewController(currentTherapySettings: deviceManager.loopManager.therapySettings, preferredGlucoseUnit: glucoseUnit, chartColors: .primary, carbTintColor: .carbTintColor, glucoseTintColor: .glucoseTintColor, guidanceColors: .default, insulinTintColor: .insulinTintColor)
+            settings.serviceSettingsDelegate = self
+            settings.completionDelegate = self
+            show(settings, sender: self)
+        }
     }
 
     fileprivate func setupService(withIdentifier identifier: String) {
