@@ -118,8 +118,6 @@ final class StatusTableViewController: LoopChartsTableViewController {
         addScenarioStepGestureRecognizers()
 
         self.tableView.backgroundColor = .secondarySystemBackground
-        
-        navigateToOnboardingIfNecessary()
     }
 
     override func didReceiveMemoryWarning() {
@@ -159,8 +157,11 @@ final class StatusTableViewController: LoopChartsTableViewController {
                     DispatchQueue.main.async {
                         self.log.debug("[reloadData] after HealthKit authorization")
                         self.reloadData()
+                        self.navigateToOnboardingIfNecessary()
                     }
                 }
+            } else {
+                self.navigateToOnboardingIfNecessary()
             }
         }
 
