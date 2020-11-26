@@ -142,3 +142,8 @@
 /* Class = "UILabel"; text = "0"; ObjectID = "zvZ-uf-zMX"; */
 "zvZ-uf-zMX.text" = "0";
 
+/* Class = "UILabel"; text = "Amount Consumed"; ObjectID = "Wx8-Tf-FnG"; */
+"Wx8-Tf-FnG.text" = "消耗碳水化合物量";
+
+/* Class = "UILabel"; text = "Food Type"; ObjectID = "ap1-M6-naG"; */
+"ap1-M6-naG.text" = "食物类型";
