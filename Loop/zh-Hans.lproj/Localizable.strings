@@ -417,3 +417,12 @@
 
 /* Name of pre-meal workout override */
 "Pre-Meal" = "餐前";
+
+/* Back button text for bolus screen to return to carb entry screen */
+"Carb Entry" = "碳水化合物";
+
+/* Title text for bolus screen following a carb entry */
+"Meal Bolus" = "餐时大剂量";
+
+/* The button text to save a carb entry without bolusing */
+"Save without Bolusing" = "仅保存碳水化合物量（不输注大剂量）";

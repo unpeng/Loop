@@ -147,3 +147,6 @@
 
 /* Class = "UILabel"; text = "Food Type"; ObjectID = "ap1-M6-naG"; */
 "ap1-M6-naG.text" = "食物类型";
+
+/* Class = "UILabel"; text = "Food Type"; ObjectID = "qPH-vU-xlu"; */
+"qPH-vU-xlu.text" = "食物类型";
